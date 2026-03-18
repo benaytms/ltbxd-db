@@ -6,13 +6,13 @@ def create_tables()->bool:
     """
         If the tables don't exist, creates them
     """
-    pass
+    return True
 
 def check_user_on_table()->bool:
     """
         Checks if user is already on the table
     """
-    pass
+    return True
 
 def add_user_wl_to_table()->bool:
     """
@@ -23,13 +23,13 @@ def add_user_wl_to_table()->bool:
 
         If user already on table, skip adding process - but returns True.
     """
-    pass
+    return True
 
 def fetch_userdata()->list[dict]:
     """
         Fetches user movies to use on select_random on main
     """
-    pass
+    return [{}]
 
 
 

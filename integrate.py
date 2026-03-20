@@ -2,21 +2,21 @@ import click
 import logging
 from random import sample
 from scrape import parse_films
-from db import create_tables, add_user_watchlist, get_user_movies
+from db import create_tables, sync_user_watchlist, get_user_movies
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s) %(message)s'
 )
 
+logger = logging.Logger(__name__)
+
 
 def fetch_or_scrape(username: str) -> list[dict]:
-    """Check DB first, scrape only if user isn't stored yet."""
-    movies = get_user_movies(username)
-    if movies is not None:
-        return movies
+    """Always scrape fresh, sync DB, return full watchlist."""
     movies = parse_films(username)
-    add_user_watchlist(username, movies)
+    result = sync_user_watchlist(username, movies)
+    logger.info(f"Sync complete — {result['added']} new, {result['already_had']} already stored.")
     return movies
 
 
@@ -30,12 +30,30 @@ def select_random(movies: list[dict]) -> list[dict] | None:
     return sample(movies, n)
 
 
+# cli.py
 @click.command()
 @click.option('--user', required=True, help='Letterboxd username')
-def main(user: str):
+@click.option('--sync', is_flag=True, default=False, help='Re-scrape and sync new movies')
+def main(user: str, sync: bool):
     create_tables()
-    movies = fetch_or_scrape(user)
-    click.echo(f"Watchlist has {len(movies)} movies.")
+
+    existing = get_user_movies(user)
+
+    if existing is None:
+        # new user — scrape and store
+        click.echo(f"New user, scraping watchlist...")
+        movies = parse_films(user)
+        sync_user_watchlist(user, movies)
+    elif sync:
+        # returning user requesting a refresh
+        click.echo(f"Syncing watchlist for '{user}'...")
+        movies = parse_films(user)
+        result = sync_user_watchlist(user, movies)
+        click.echo(f"{result['added']} new movies added.")
+    else:
+        # returning user, just use what's in the DB
+        movies = existing
+        click.echo(f"Loaded {len(movies)} movies from database.")
 
     selected = select_random(movies)
     if selected is None:

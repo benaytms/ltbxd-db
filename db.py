@@ -56,7 +56,7 @@ def add_user_watchlist(username: str, movies: list[dict]) -> bool:
                     "INSERT INTO users (username) VALUES (%s) RETURNING id",
                     (username,)
                 )
-                user_id = cursor.fetchone()
+                user_id = cursor.fetchone()[0] # type: ignore
 
                 for movie in movies:
                     cursor.execute(
@@ -93,3 +93,55 @@ def get_user_movies(username: str) -> list[dict] | None:
     except Exception as e:
         logger.error(f"DB fetch failed: {e}")
         return None
+    
+    
+
+def sync_user_watchlist(username: str, scraped_movies: list[dict]) -> dict:
+    """
+    For existing users: diff scraped watchlist against DB, insert new entries.
+    For new users: insert everything.
+    Returns a summary {"added": int, "already_had": int}.
+    """
+    try:
+        with psycopg2.connect(DB_URL) as conn:
+            with conn.cursor() as cursor:
+                # get or create user
+                cursor.execute(
+                    "SELECT id FROM users WHERE username = %s", (username,)
+                )
+                row = cursor.fetchone()
+
+                if row:
+                    user_id = row[0]
+                    # fetch what's already stored as a set of (title, year) tuples
+                    cursor.execute(
+                        "SELECT title, release_year FROM movies WHERE user_id = %s",
+                        (user_id,)
+                    )
+                    existing = {(r[0], r[1]) for r in cursor.fetchall()}
+                else:
+                    cursor.execute(
+                        "INSERT INTO users (username) VALUES (%s) RETURNING id",
+                        (username,)
+                    )
+                    user_id = cursor.fetchone()[0] # type: ignore
+                    existing = set()
+
+                # diff: only insert movies not already in DB
+                new_movies = [
+                    m for m in scraped_movies
+                    if (m["title"], m.get("year")) not in existing
+                ]
+
+                for movie in new_movies:
+                    cursor.execute(
+                        "INSERT INTO movies (user_id, title, release_year) VALUES (%s, %s, %s)",
+                        (user_id, movie["title"], movie.get("year"))
+                    )
+
+                conn.commit()
+                return {"added": len(new_movies), "already_had": len(existing)}
+
+    except Exception as e:
+        logger.error(f"DB sync failed: {e}")
+        return {"added": 0, "already_had": 0}

@@ -27,6 +27,19 @@ def create_tables() -> bool:
                         release_year INT
                     );
                 """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS genres (
+                        id SERIAL PRIMARY KEY,
+                        name TEXT NOT NULL UNIQUE
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS movies_genres (
+                        movie_id INT REFERENCES movies(id),
+                        genre_id INT REFERENCES genres(id),
+                        PRIMARY KEY (movie_id, genre_id)
+                    );
+                """)
                 conn.commit()
                 logger.info("Tables ready.")
                 return True
@@ -40,72 +53,59 @@ def user_exists(cursor, username: str) -> bool:
     return cursor.fetchone() is not None
 
 
-def add_user_watchlist(username: str, movies: list[dict]) -> bool:
-    """
-    Insert user + their watchlist into the DB.
-    If user already exists, skip entirely and return True.
-    """
-    try:
-        with psycopg2.connect(DB_URL) as conn:
-            with conn.cursor() as cursor:
-                if user_exists(cursor, username):
-                    logger.info(f"User '{username}' already in DB, skipping.")
-                    return True
+def get_or_create_genre(cursor, genre_name: str) -> int:
+    cursor.execute(
+        "INSERT INTO genres (name) VALUES (%s) ON CONFLICT (name) DO NOTHING",
+        (genre_name,)
+    )
+    cursor.execute("SELECT id FROM genres WHERE name = %s", (genre_name,))
+    return cursor.fetchone()[0]
 
-                cursor.execute(
-                    "INSERT INTO users (username) VALUES (%s) RETURNING id",
-                    (username,)
-                )
-                user_id = cursor.fetchone()[0] # type: ignore
 
-                for movie in movies:
-                    cursor.execute(
-                        "INSERT INTO movies (user_id, title, release_year) VALUES (%s, %s, %s)",
-                        (user_id, movie["title"], movie.get("year"))
-                    )
+def insert_movie_with_genres(cursor, user_id: int, movie: dict) -> None:
+    cursor.execute(
+        "INSERT INTO movies (user_id, title, release_year) VALUES (%s, %s, %s) RETURNING id",
+        (user_id, movie["title"], movie.get("year"))
+    )
+    movie_id = cursor.fetchone()[0]
 
-                conn.commit()
-                logger.info(f"Added {len(movies)} movies for user '{username}'.")
-                return True
-    except Exception as e:
-        logger.error(f"DB insert failed: {e}")
-        return False
+    for genre_name in movie.get("genres") or []:
+        genre_id = get_or_create_genre(cursor, genre_name)
+        cursor.execute(
+            "INSERT INTO movies_genres (movie_id, genre_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            (movie_id, genre_id)
+        )
 
 
 def get_user_movies(username: str) -> list[dict] | None:
-    """
-    Fetch a user's watchlist from DB.
-    Returns None if user doesn't exist yet.
-    """
     try:
         with psycopg2.connect(DB_URL) as conn:
             with conn.cursor() as cursor:
                 if not user_exists(cursor, username):
                     return None
                 cursor.execute("""
-                    SELECT m.title, m.release_year
+                    SELECT m.title, m.release_year, ARRAY_AGG(g.name) AS genres
                     FROM movies m
                     JOIN users u ON m.user_id = u.id
+                    LEFT JOIN movies_genres mg ON m.id = mg.movie_id
+                    LEFT JOIN genres g ON mg.genre_id = g.id
                     WHERE u.username = %s
+                    GROUP BY m.id, m.title, m.release_year
                 """, (username,))
                 rows = cursor.fetchall()
-                return [{"title": r[0], "year": r[1]} for r in rows]
+                return [
+                    {"title": r[0], "year": r[1], "genres": [g for g in r[2] if g is not None]}
+                    for r in rows
+                ]
     except Exception as e:
         logger.error(f"DB fetch failed: {e}")
         return None
-    
-    
+
 
 def sync_user_watchlist(username: str, scraped_movies: list[dict]) -> dict:
-    """
-    For existing users: diff scraped watchlist against DB, insert new entries.
-    For new users: insert everything.
-    Returns a summary {"added": int, "already_had": int}.
-    """
     try:
         with psycopg2.connect(DB_URL) as conn:
             with conn.cursor() as cursor:
-                # get or create user
                 cursor.execute(
                     "SELECT id FROM users WHERE username = %s", (username,)
                 )
@@ -113,7 +113,6 @@ def sync_user_watchlist(username: str, scraped_movies: list[dict]) -> dict:
 
                 if row:
                     user_id = row[0]
-                    # fetch what's already stored as a set of (title, year) tuples
                     cursor.execute(
                         "SELECT title, release_year FROM movies WHERE user_id = %s",
                         (user_id,)
@@ -127,17 +126,13 @@ def sync_user_watchlist(username: str, scraped_movies: list[dict]) -> dict:
                     user_id = cursor.fetchone()[0] # type: ignore
                     existing = set()
 
-                # diff: only insert movies not already in DB
                 new_movies = [
                     m for m in scraped_movies
                     if (m["title"], m.get("year")) not in existing
                 ]
 
                 for movie in new_movies:
-                    cursor.execute(
-                        "INSERT INTO movies (user_id, title, release_year) VALUES (%s, %s, %s)",
-                        (user_id, movie["title"], movie.get("year"))
-                    )
+                    insert_movie_with_genres(cursor, user_id, movie)
 
                 conn.commit()
                 return {"added": len(new_movies), "already_had": len(existing)}

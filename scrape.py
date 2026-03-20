@@ -32,6 +32,8 @@ def parse_films(user: str) -> list[dict]:
 
         soup = BeautifulSoup(response.text, "html.parser")
         posters = soup.find_all("div", {"data-component-class": "LazyPoster"})
+        print(posters[0])
+        exit(0)
 
         for movie in posters:
             raw = movie["data-item-name"]

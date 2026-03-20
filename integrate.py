@@ -1,5 +1,6 @@
 import click
 import logging
+import time
 from random import sample
 from scrape import parse_films
 from db import create_tables, sync_user_watchlist, get_user_movies
@@ -63,7 +64,9 @@ def main(user: str, sync: bool):
     click.echo("\nSelected movies:")
     for movie in selected:
         click.echo(f"  {movie['title']} ({movie['year'] or 'N/A'})")
+        time.sleep(1.5)
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    parse_films('ye4rz3r0')

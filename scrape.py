@@ -41,7 +41,7 @@ def parse_films(user: str) -> list[dict]:
                 click.echo("This user's watchlist is private.")
                 sys.exit(1)
             elif status == 404:
-                click.echo("User not found.")
+                click.echo(f"User {user} not found.")
                 sys.exit(1)
 
         soup = BeautifulSoup(response.text, "html.parser")

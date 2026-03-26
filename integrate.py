@@ -13,34 +13,45 @@ logger = logging.getLogger(__name__)
 
 
 def select_random(movies: list[dict], genre: str) -> list[dict] | None:
-    n = int(input("How many to select: "))
-    if n == 0:
-        return None
-
     if genre != 'all':
         genre_movies=[]
         for m in movies:
             genre_list = m['genres']
             if genre.lower() in genre_list:
                 genre_movies.append(m)
-        if not movies:
+        if not movies or len(genre_movies) < 1:
             click.echo(f"No movies found for genre '{genre}'.")
             return None
-        if n<0 or n > len(genre_movies):
-            click.echo(f"Invalid number, {len(genre_movies)} movies with genre: {genre}")
+        
+        click.echo(f"{len(genre_movies)} movies found for {genre}")
+
+    while True:
+        n = input("How many to select: ").strip()
+        try:
+            n = int(n)
+            if n < 0:
+                raise ValueError
+        except ValueError:
+            logger.error(f"'{n}' not accepted as entry, only positive integers are valid.")
+            continue
+        n = int(n)
+        if n == 0:
             return None
-        return sample(genre_movies, n)
-
-    if n < 0 or n > len(movies):
-        click.echo(f"Invalid number, {len(movies)} movies available.")
-        return None
-
-    return sample(movies, n)
+        if genre == 'all':
+            if n > len(movies):
+                click.echo(f"Invalid number, {len(movies)} movies available.")
+                continue
+            return sample(movies, n)
+        else:
+            if n > len(genre_movies):
+                click.echo(f"Invalid number, {len(genre_movies)} movies with genre: {genre}")
+                continue
+            return sample(genre_movies, n)
 
 
 @click.command()
 @click.option('--user', required=True, help='Letterboxd username')
-@click.option('--sync', is_flag=True, default=False, help='Re-scrape and sync newly added movies')
+@click.option('--sync', is_flag=True, default=False, help='Re-scrape watchlist and sync newly added movies')
 @click.option('--genre', default='all', help='Specifies a genre to sample from')
 def main(user: str, sync: bool, genre: str):
     create_tables()
@@ -68,7 +79,7 @@ def main(user: str, sync: bool, genre: str):
     click.echo("\nSelected movies:")
     for movie in selected:
         click.echo(f"  {movie['title']} ({movie['year'] or 'N/A'}) — {', '.join(movie.get('genres') or []) or 'N/A'}")
-        time.sleep(0.3)
+        time.sleep(1)
 
 
 if __name__ == "__main__":

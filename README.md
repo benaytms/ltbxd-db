@@ -4,4 +4,4 @@ Made purely for fun and not intended for professional use.
 
 Requirements:
 1. postgresql
-2. (uv)[https://docs.astral.sh/uv/]
+2. [uv](https://docs.astral.sh/uv/)

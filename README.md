@@ -19,7 +19,7 @@ To test:
 1. git clone https://github.com/benaytms/ltbxd-db.git
 2. cd ltbxd-db
 3. mv .env.example .env
-4. *Change the values on .env according to your postgresql configuration*
+4. # Change the values on .env according to your postgresql configuration
 5. uv sync
 6. uv run python integrate.py --user <letterboxd_username>
 ```

@@ -26,6 +26,7 @@ To test:
 
 You can also use the additional flags:
 
+```
 uv run python integrate.py --help
 Usage: integrate.py [OPTIONS]
 
@@ -34,6 +35,7 @@ Options:
   --sync        Re-scrape watchlist and sync newly added movies
   --genre TEXT  Specifies a genre to sample from
   --help        Show this message and exit.
+```
 
 ***
 

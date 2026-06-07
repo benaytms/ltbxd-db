@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def select_random(movies: list[dict], genre: str='all') -> list[dict] | None:
-    genre = str(input("Select movies with a specific genre: (Empty for all)"))
+    genre = str(input("Select movies with a specific genre (Empty for all): "))
     if (genre == '' or genre is None): genre = 'all'
     if genre != 'all':
         genre_movies=[]

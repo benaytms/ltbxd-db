@@ -4,8 +4,8 @@ I ended up implementing PostgreSQL for storing movies and users as well.
 **Made purely for fun and not intended for professional use.**
 
 Requirements:
-1. postgresql server running with a database
-2. [uv](https://docs.astral.sh/uv/) (on linux: curl -LsSf https://astral.sh/uv/install.sh | sh)
+  1. [uv](https://docs.astral.sh/uv/) (on linux: curl -LsSf https://astral.sh/uv/install.sh | sh)
+  2. (optional) postgresql (if you want to experiment with the database)
 
 If you want to run postgresql with Docker, here's a template:
 ```

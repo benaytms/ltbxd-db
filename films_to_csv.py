@@ -3,9 +3,11 @@ import os
 from scrape import parse_films
 
 def get_user_films_to_csv(user: str) -> None:
-    print("Fetching watchlist...")
     if os.path.isfile(f'./{user}_films.csv'):
+        print("Watchlist csv already present")
         return
+        
+    print("Fetching watchlist...")
     films_list = parse_films(user)
 
     df = pd.DataFrame(films_list)

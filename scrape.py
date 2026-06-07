@@ -52,8 +52,8 @@ def parse_films(user: str) -> list[dict]:
             slug = str(movie["data-item-slug"])
             genres = get_film_genres(slug)
 
-            if '(' in raw and raw.endswith(')'): # type: ignore
-                name, year = raw.rsplit(" (", 1) # type: ignore
+            if '(' in raw and raw.endswith(')'):
+                name, year = raw.rsplit(" (", 1)
                 movies.append({"title": name, "year": int(year.rstrip(")")), "genres": genres})
             else:
                 movies.append({"title": raw, "year": None, "genres": genres})

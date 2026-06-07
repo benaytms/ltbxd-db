@@ -41,7 +41,7 @@ def create_tables() -> bool:
                     );
                 """)
                 conn.commit()
-                logger.info("Tables ready.")
+                logger.debug("Tables ready.")
                 return True
     except Exception as e:
         logger.error(f"Could not create tables: {e}")

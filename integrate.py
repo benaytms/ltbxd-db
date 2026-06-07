@@ -28,7 +28,6 @@ def select_random(movies: list[dict], genre: str='all') -> list[dict] | None:
         click.echo(f"{len(genre_movies)} movies found for {genre}")
 
     while True:
-        click.echo(f"{len(genre_movies)} movies found")
         n = input("How many to select: ").strip()
         try:
             n = int(n)

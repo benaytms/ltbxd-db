@@ -23,6 +23,15 @@ To get a csv of your letterboxd watchlist:
 5. # the csv file will be saved as './<letterboxd_username>_films.csv'
 ```
 
+Select random movies from your watchlist:
+```
+1. git clone https://github.com/benaytms/ltbxd-db.git
+2. cd ltbxd-db
+3. uv sync
+4. uv run python select_random_film.py
+5. # you can specify a genre to sample from. common examples: action, horror, romance, comedy, war.
+```
+
 To test the database:
 ```
 1. git clone https://github.com/benaytms/ltbxd-db.git

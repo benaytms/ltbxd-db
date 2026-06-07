@@ -19,7 +19,7 @@ To get a csv of your letterboxd watchlist:
 git clone https://github.com/benaytms/ltbxd-db.git
 cd ltbxd-db
 uv sync
-uv run python films_to_csv.py <letterboxd_username>
+uv run python films_to_csv.py
 # the csv file will be saved as './<letterboxd_username>_films.csv'
 ```
 

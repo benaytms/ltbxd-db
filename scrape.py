@@ -13,7 +13,7 @@ def get_film_genres(slug: str) -> list[str]:
         soup = BeautifulSoup(response.text, "html.parser")
         genre_links = soup.select("a[href*='/films/genre/']")
         genre_list = [a.text.lower().strip().replace(' ', '_') for a in genre_links]
-        print(genre_list)
+        #print(genre_list) -- prints the genre of each movie scraped
         return genre_list
     except Exception as e:
         click.echo(f"Error fetching genres for '{slug}': {e}")

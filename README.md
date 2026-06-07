@@ -16,30 +16,30 @@ docker run -d --name <container_name> -e POSTGRES_USER=<username> -e POSTGRES_PA
 
 To get a csv of your letterboxd watchlist:
 ```
-1. git clone https://github.com/benaytms/ltbxd-db.git
-2. cd ltbxd-db
-3. uv sync
-4. uv run python films_to_csv.py <letterboxd_username>
-5. # the csv file will be saved as './<letterboxd_username>_films.csv'
+git clone https://github.com/benaytms/ltbxd-db.git
+cd ltbxd-db
+uv sync
+uv run python films_to_csv.py <letterboxd_username>
+# the csv file will be saved as './<letterboxd_username>_films.csv'
 ```
 
 Select random movies from your watchlist:
 ```
-1. git clone https://github.com/benaytms/ltbxd-db.git
-2. cd ltbxd-db
-3. uv sync
-4. uv run python select_random_film.py
-5. # you can specify a genre to sample from. common examples: action, horror, romance, comedy, war.
+git clone https://github.com/benaytms/ltbxd-db.git
+cd ltbxd-db
+uv sync
+uv run python select_random_film.py
+# you can specify a genre to sample from. common examples: action, horror, romance, comedy, war.
 ```
 
 To test the database:
 ```
-1. git clone https://github.com/benaytms/ltbxd-db.git
-2. cd ltbxd-db
-3. mv .env.example .env
-4. # Change the values on .env according to your postgresql configuration
-5. uv sync
-6. uv run python integrate.py --user <letterboxd_username>
+git clone https://github.com/benaytms/ltbxd-db.git
+cd ltbxd-db
+mv .env.example .env
+# Change the values on .env according to your postgresql configuration
+uv sync
+uv run python integrate.py --user <letterboxd_username>
 ```
 
 You can also use the additional flags:

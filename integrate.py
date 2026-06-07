@@ -80,7 +80,7 @@ def main(user: str, sync: bool):
 
     click.echo("\nSelected movies:")
     for movie in selected:
-        click.echo(f"  {movie['title']} ({movie['year'] or 'N/A'}) — {', '.join(movie.get('genres') or []) or 'N/A'}")
+        click.echo(f"\t{movie['title']} ({movie['year'] or 'N/A'}) — {', '.join(movie.get('genres') or []) or 'N/A'}")
         time.sleep(1)
 
 

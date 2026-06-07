@@ -12,7 +12,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def select_random(movies: list[dict], genre: str) -> list[dict] | None:
+def select_random(movies: list[dict], genre: str='all') -> list[dict] | None:
+    genre = str(input("Select movies with a specific genre: "))
+    if (genre == '' or genre is None): genre = 'all'
     if genre != 'all':
         genre_movies=[]
         for m in movies:
@@ -20,7 +22,7 @@ def select_random(movies: list[dict], genre: str) -> list[dict] | None:
             if genre.lower() in genre_list:
                 genre_movies.append(m)
         if not movies or len(genre_movies) < 1:
-            click.echo(f"No movies found for genre '{genre}'.")
+            print(f"No movies found for genre '{genre}'.")
             return None
         
         click.echo(f"{len(genre_movies)} movies found for {genre}")
@@ -34,6 +36,7 @@ def select_random(movies: list[dict], genre: str) -> list[dict] | None:
         except ValueError:
             logger.error(f"'{n}' not accepted as entry, only positive integers are valid.")
             continue
+            
         n = int(n)
         if n == 0:
             return None
@@ -52,8 +55,7 @@ def select_random(movies: list[dict], genre: str) -> list[dict] | None:
 @click.command()
 @click.option('--user', required=True, help='Letterboxd username')
 @click.option('--sync', is_flag=True, default=False, help='Re-scrape watchlist and sync newly added movies')
-@click.option('--genre', default='all', help='Specifies a genre to sample from')
-def main(user: str, sync: bool, genre: str):
+def main(user: str, sync: bool):
     create_tables()
     existing = get_user_movies(user)
 
@@ -71,7 +73,7 @@ def main(user: str, sync: bool, genre: str):
         movies = existing
         click.echo(f"Loaded {len(movies)} movies from database.")
 
-    selected = select_random(movies, genre)
+    selected = select_random(movies)
     if selected is None:
         click.echo("No movies selected.")
         return

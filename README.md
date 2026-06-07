@@ -51,7 +51,6 @@ Usage: integrate.py [OPTIONS]
 Options:
   --user TEXT   Letterboxd username  [required]
   --sync        Re-scrape watchlist and sync newly added movies
-  --genre TEXT  Specifies a genre to sample from
   --help        Show this message and exit.
 ```
 

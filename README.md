@@ -1,7 +1,7 @@
 This was a simple project i made for randomly selecting movies on my Letterboxd watchlist.
 I ended up implementing PostgreSQL for storing movies and users as well.
 
-**Made purely for fun and not intended for professional use.**
+**Made purely for fun and not intended for professional use. I have no idea what i'm doing.**
 
 Requirements:
   1. [uv](https://docs.astral.sh/uv/) (on linux: curl -LsSf https://astral.sh/uv/install.sh | sh)
